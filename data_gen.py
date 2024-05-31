@@ -9,6 +9,14 @@ def col_names():
     tstat_cols = [f"{c}_t" for c in ret_cols]
     return ret_cols, tstat_cols
 
+class Returns:
+    def __init__(self, N):
+        for i in range(1, 6):
+            rets = pd.DataFrame(np.random.randn(100,N)) / 40  + .005
+            rets.columns = [f"Factor{i}" for i in range(1, N+1)]
+            setattr(self, f"q{i}rets", rets)
+        
+
 def main():
     N = 10
     df_ret = pd.DataFrame(np.random.randn(N,5) / 100.)
@@ -21,13 +29,13 @@ def main():
     df.set_index(" ", inplace=True)
     df.columns = cols
 
-    rets = pd.DataFrame(np.random.randn(100,N)) / 40  + .005
-    rets.columns = [f"Factor{i}" for i in range(1, N+1)]
-    # import ipdb; ipdb.set_trace()
-    to = pd.DataFrame(np.random.randn(100,N))
-    corr = rets.corr()
+    rt = Returns(N)
+    hml = rt.q1rets - rt.q5rets
 
-    df["ts_ret"] = ((1 + rets.fillna(.0)).cumprod()-1).T.values.tolist()
+    to = pd.DataFrame(np.random.randn(100,N))
+    corr = hml.corr()
+
+    df["ts_ret"] = ((1 + hml.fillna(.0)).cumprod()-1).T.values.tolist()
     df["ts_turnover"] = (to.fillna(.0)).T.values.tolist()
 
-    return df, corr, rets
+    return df, corr, hml, rt

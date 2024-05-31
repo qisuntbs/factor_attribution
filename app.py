@@ -1,26 +1,16 @@
 import numpy as np
 import streamlit as st
 import plotly.express as px
-import data_gen
+import data_gen, util
 
 st.set_page_config(page_icon="🧊", page_title="Factor App", layout="wide", initial_sidebar_state="expanded")
 st.elements.utils._show_default_value_warning=True
 
-def pix_counts(factors):
-    if len(factors) > 11: pn = len(factors)+1
-    elif len(factors) > 9: pn = len(factors)+4
-    else: pn = len(factors)+3
-    return pn
-
 def app():
-    st.markdown("""<style> 
-                footer {visibility: hidden;}
-                .stDeployButton {visibility: hidden;}
-                </style>
-                """, unsafe_allow_html=True)
-    df, corr, rets = data_gen.main()
+    st.markdown(util.style(), unsafe_allow_html=True)
+    df, corr, rets, rt = data_gen.main()
 
-    t0, t1 = st.tabs(["Return Analysis", "Correlation Analysis"])
+    t0, t1, t2 = st.tabs(["Returns", "Correlations", "Factor Analysis"])
 
     with t0:
         # return attribution
@@ -35,7 +25,7 @@ def app():
                      }, height=(len(df)+1)*35+3)
 
     with t1:
-        pn = pix_counts(df.index.to_list())
+        pn = util.pix_counts(df.index.to_list())
         corr_df = rets.corr().round(2)
         hml_corr = corr_df.where(np.tril(np.ones(corr_df.shape)).astype(bool))
         fig_corr = px.imshow(hml_corr,
@@ -45,6 +35,10 @@ def app():
         fig_corr.update(layout_coloraxis_showscale=False)
         fig_corr.update_layout(yaxis_title=None, xaxis_title=None)
         st.plotly_chart(fig_corr, use_container_width=False, config={'displayModeBar': False})
+
+    with t2:
+        pass
+
 
 if __name__ == "__main__":
     app()
